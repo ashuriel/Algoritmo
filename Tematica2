@@ -1,103 +1,136 @@
-import tkinter as tk
-from tkinter import messagebox
 import math
+import statistics
 
-def clasificar_figura():
+
+areas = []
+perimetros = []
+tipos_figura = []
+ternas = []
+
+dos_iguales = 0
+tres_iguales = 0
+
+def calcular_cuadrado_circulo(lado):
+    area_cuadrado = lado ** 2
+    perimetro_cuadrado = 4 * lado
+    area_circulo = math.pi * (lado / 2) ** 2
+    perimetro_circulo = 2 * math.pi * (lado / 2)
+    return area_cuadrado + area_circulo, perimetro_cuadrado + perimetro_circulo
+
+def calcular_rectangulo_rombo(lado1, lado2):
+    area_rectangulo = lado1 * lado2
+    perimetro_rectangulo = 2 * (lado1 + lado2)
+    area_rombo = (lado1 * lado2) / 2
+    perimetro_rombo = 4 * math.sqrt((lado1 / 2) ** 2 + (lado2 / 2) ** 2)
+    return area_rectangulo + area_rombo, perimetro_rectangulo + perimetro_rombo
+
+def calcular_triangulo_trapecio(a, b, c):
+    
+    s = (a + b + c) / 2
     try:
-        global a, b, c, figura
-        a = float(entry1.get())
-        b = float(entry2.get())
-        c = float(entry3.get())
+        area_triangulo = math.sqrt(s * (s - a) * (s - b) * (s - c))
+    except:
+        area_triangulo = 0
+    perimetro_triangulo = a + b + c
+   
+    base1, base2, lado = sorted([a, b, c])
+    h = math.sqrt(lado ** 2 - ((base1 - base2) / 2) ** 2) if base1 != base2 else lado
+    area_trapecio = ((base1 + base2) / 2) * h
+    perimetro_trapecio = base1 + base2 + 2 * lado
+    return area_triangulo + area_trapecio, perimetro_triangulo + perimetro_trapecio
 
-        if a == b == c:
-            figura = "círculo"
-            resultado = "Es un círculo"
-        elif a == b or a == c or b == c:
-            figura = "triángulo"
-            resultado = "Es un triángulo isósceles"
-        elif abs(a - b) == c or abs(b - c) == a or abs(a - c) == b:
-            figura = "triángulo"
-            resultado = "Es un triángulo rectángulo"
-        elif a + b > c and a + c > b and b + c > a:
-            figura = "triángulo"
-            resultado = "Es un triángulo escaleno"
-        elif a + b == c or a + c == b or b + c == a:
-            figura = "paralelogramo"
-            resultado = "Forma un paralelogramo"
-        else:
-            figura = "ninguna"
-            resultado = "No forma una figura reconocida"
-
-        resultado_label.config(text=resultado)
-        perimetro_label.config(text="")
-        area_label.config(text="")
-
-    except ValueError:
-        messagebox.showerror("Error", "Por favor, ingresa solo números válidos.")
-
-def calcular_perimetro():
-    if figura == "círculo":
-        r = a / 2
-        perimetro = 2 * math.pi * r
-        perimetro_label.config(text=f"Perímetro: {perimetro:.2f}")
-    elif figura == "triángulo":
-        perimetro = a + b + c
-        perimetro_label.config(text=f"Perímetro: {perimetro:.2f}")
-    elif figura == "paralelogramo":
-        perimetro = 2 * (a + b)
-        perimetro_label.config(text=f"Perímetro: {perimetro:.2f}")
+def procesar_terna(a, b, c):
+    global dos_iguales, tres_iguales
+    if a == b == c:
+        tres_iguales += 1
+        tipo = "Cuadrado y Círculo"
+        area, perimetro = calcular_cuadrado_circulo(a)
+    elif a == b or b == c or a == c:
+        dos_iguales += 1
+        x, y = a, b if a != c else (b, c)
+        tipo = "Rectángulo y Rombo"
+        area, perimetro = calcular_rectangulo_rombo(x, y)
     else:
-        perimetro_label.config(text="No se puede calcular")
+        tipo = "Triángulo y Trapecio"
+        area, perimetro = calcular_triangulo_trapecio(a, b, c)
 
-def calcular_area():
-    if figura == "círculo":
-        r = a / 2
-        area = math.pi * r ** 2
-        area_label.config(text=f"Área: {area:.2f}")
-    elif figura == "triángulo":
-        s = (a + b + c) / 2
-        try:
-            area = math.sqrt(s * (s - a) * (s - b) * (s - c))
-            area_label.config(text=f"Área: {area:.2f}")
-        except ValueError:
-            area_label.config(text="Área no válida")
-    elif figura == "paralelogramo":
-        area = a * c
-        area_label.config(text=f"Área: {area:.2f}")
-    else:
-        area_label.config(text="No se puede calcular")
+    areas.append(area)
+    perimetros.append(perimetro)
+    tipos_figura.append(tipo)
+    ternas.append((a, b, c))
+    print(f"Terna ({a}, {b}, {c}) → {tipo}")
+    print(f"  Área total: {area:.2f}")
+    print(f"  Perímetro total: {perimetro:.2f}\n")
 
-# Interfaz
-root = tk.Tk()
-root.title("Clasificador de Figuras")
-root.geometry("350x400")
+#Función iterativa e equivalente recursiva
 
-tk.Label(root, text="Ingresa tres números:").pack(pady=10)
+def promedio_iterativo(lista):  #iterativa
+    suma = 0
+    for x in lista:
+        suma += x
+    return suma / len(lista) if lista else 0
 
-entry1 = tk.Entry(root)
-entry1.pack()
+def promedio_recursivo(lista):  #recursiva
+    if not lista:
+        return 0
+    if len(lista) == 1:
+        return lista[0]
+    return (lista[0] + (len(lista) - 1) * promedio_recursivo(lista[1:])) / len(lista)
 
-entry2 = tk.Entry(root)
-entry2.pack()
+#Algoritmo de ordenamiento: Bubble Sort
+def bubble_sort(lista):
+    n = len(lista)
+    for i in range(n):
+        for j in range(0, n-i-1):
+            if lista[j] > lista[j+1]:
+                lista[j], lista[j+1] = lista[j+1], lista[j]
 
-entry3 = tk.Entry(root)
-entry3.pack()
-
-tk.Button(root, text="Clasificar", command=clasificar_figura).pack(pady=10)
-tk.Button(root, text="Calcular Perímetro", command=calcular_perimetro).pack(pady=5)
-tk.Button(root, text="Calcular Área", command=calcular_area).pack(pady=5)
-
-resultado_label = tk.Label(root, text="", font=("Arial", 12, "bold"))
-resultado_label.pack(pady=10)
-
-perimetro_label = tk.Label(root, text="", font=("Arial", 11))
-perimetro_label.pack(pady=5)
-
-area_label = tk.Label(root, text="", font=("Arial", 11))
-area_label.pack(pady=5)
+#Algoritmo de búsqueda: Búsqueda lineal
+def buscar_valor(lista, valor):
+    for i, x in enumerate(lista):
+        if math.isclose(x, valor, rel_tol=1e-5):
+            return i
+    return -1
 
 
-a = b = c = 0
-figura = "ninguna"
+print("Introduce ternas de números separados por espacios (escribe 'fin' para terminar):")
+while True:
+    entrada = input("> ")
+    if entrada.lower() == "fin":
+        break
+    try:
+        a, b, c = map(float, entrada.split())
+        procesar_terna(a, b, c)
+    except:
+        print("Entrada inválida. Asegúrate de introducir tres números.")
 
-root.mainloop()
+print("\nResumen:")
+print(f"Ternas con dos números iguales: {dos_iguales}")
+print(f"Ternas con tres números iguales: {tres_iguales}")
+
+
+areas_ordenadas = areas.copy()
+bubble_sort(areas_ordenadas)
+print(f"\nÁreas ordenadas ascendentemente: {areas_ordenadas}")
+
+perimetros_ordenados = sorted(perimetros, reverse=True)
+print(f"Perímetros ordenados descendentemente: {perimetros_ordenados}")
+
+
+print(f"\nPromedio de áreas (iterativo): {promedio_iterativo(areas):.2f}")
+print(f"Promedio de áreas (recursivo): {promedio_recursivo(areas):.2f}")
+print(f"Mediana de perímetros: {statistics.median(perimetros):.2f}")
+
+# Búsqueda
+valor = float(input("\nIngresa un valor de área a buscar: "))
+pos = buscar_valor(areas, valor)
+if pos != -1:
+    print(f"Área encontrada en posición {pos}: Terna {ternas[pos]} → {tipos_figura[pos]}")
+else:
+    print("Área no encontrada.")
+
+#Complejidad
+print("\nComplejidad:")
+print("- Búsqueda lineal → Tiempo: O(n), Espacio: O(1)")
+print("- Bubble Sort → Tiempo: O(n²), Espacio: O(1)")
+print("- Promedios → Tiempo: O(n), Espacio: O(1) en iterativo, O(n) en recursivo (por pila)")
